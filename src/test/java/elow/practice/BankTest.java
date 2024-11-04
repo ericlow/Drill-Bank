@@ -9,8 +9,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class BankTest {
     private static final String CMD_CREATE = "CREATE";
     private static final String CMD_ADD = "ADD";
-
     private static final String CMD_TRANSFER = "TRANSFER ACCT";
+    private static final String CMD_REPORT ="TRANSFER REPORT";
 
 
     @Nested
@@ -420,6 +420,173 @@ class BankTest {
             // Assert
             assertArrayEquals(
                     new String[] {"true", "true", "100", "0"},
+                    results,
+                    "Should allow transfer of entire balance"
+            );
+        }
+
+    }
+
+    @Nested
+    @DisplayName("Account Report Tests")
+    class AccountReportTests {
+        @Test
+        @DisplayName("Return the median of 3 transactions")
+        void createBasicReport() {
+            // Arrange
+            Bank bank = new Bank();
+            String[][] commands = new String[7][];
+            commands[0] = new String[] {CMD_CREATE, "1", "account1"};
+            commands[1] = new String[] {CMD_CREATE, "2", "account2"};
+            commands[2] = new String[] {CMD_ADD, "3", "account1", "1000"};
+            commands[3] = new String[] {CMD_TRANSFER, "4", "account1", "account2", "100"};
+            commands[4] = new String[] {CMD_TRANSFER, "5", "account1", "account2", "200"};
+            commands[5] = new String[] {CMD_TRANSFER, "6", "account1", "account2", "300"};
+            commands[6] = new String[] {CMD_REPORT, "7", "1"};
+
+            // Act
+            String[] results = bank.execute(commands);
+
+            // Assert
+            assertArrayEquals(
+                    new String[] {"true", "true", "1000", "900", "700","400", "account1(200)"},
+                    results,
+                    "Should allow transfer of entire balance"
+            );
+        }
+
+        @Test
+        @DisplayName("return the median of 2 transactions")
+        void reportTwoTransfers() {
+            // Arrange
+            Bank bank = new Bank();
+            String[][] commands = new String[6][];
+            commands[0] = new String[] {CMD_CREATE, "1", "account1"};
+            commands[1] = new String[] {CMD_CREATE, "2", "account2"};
+            commands[2] = new String[] {CMD_ADD, "3", "account1", "1000"};
+            commands[3] = new String[] {CMD_TRANSFER, "4", "account1", "account2", "100"};
+            commands[4] = new String[] {CMD_TRANSFER, "5", "account1", "account2", "200"};
+            commands[5] = new String[] {CMD_REPORT, "6", "1"};
+
+            // Act
+            String[] results = bank.execute(commands);
+
+            // Assert
+            assertArrayEquals(
+                    new String[] {"true", "true", "1000", "900", "700", "account1(150)"},
+                    results,
+                    "Should allow transfer of entire balance"
+            );
+        }
+
+        @Test
+        @DisplayName("return the median of 4 transactions")
+        void reportEvenNumbersOfTransfers() {
+            // Arrange
+            Bank bank = new Bank();
+            String[][] commands = new String[8][];
+            commands[0] = new String[] {CMD_CREATE, "1", "account1"};
+            commands[1] = new String[] {CMD_CREATE, "2", "account2"};
+            commands[2] = new String[] {CMD_ADD, "3", "account1", "2000"};
+            commands[3] = new String[] {CMD_TRANSFER, "4", "account1", "account2", "100"};
+            commands[4] = new String[] {CMD_TRANSFER, "5", "account1", "account2", "200"};
+            commands[5] = new String[] {CMD_TRANSFER, "6", "account1", "account2", "300"};
+            commands[6] = new String[] {CMD_TRANSFER, "7", "account1", "account2", "400"};
+            commands[7] = new String[] {CMD_REPORT, "8", "1"};
+
+            // Act
+            String[] results = bank.execute(commands);
+
+            // Assert
+            assertArrayEquals(
+                    new String[] {"true", "true", "1000", "900", "700", "account1(150)"},
+                    results,
+                    "Should allow transfer of entire balance"
+            );
+        }
+
+        @Test
+        @DisplayName("Report on all accounts")
+        void reportOnAllAccounts() {
+            // Arrange
+            Bank bank = new Bank();
+            String[][] commands = new String[9][];
+            commands[0] = new String[] {CMD_CREATE, "1", "account1"};
+            commands[1] = new String[] {CMD_CREATE, "2", "account2"};
+            commands[2] = new String[] {CMD_CREATE, "3", "account3"};
+            commands[3] = new String[] {CMD_ADD, "4", "account1", "2000"};
+            commands[3] = new String[] {CMD_ADD, "5", "account1", "2000"};
+            commands[4] = new String[] {CMD_TRANSFER, "6", "account1", "account2", "100"};
+            commands[5] = new String[] {CMD_TRANSFER, "7", "account1", "account2", "200"};
+            commands[6] = new String[] {CMD_TRANSFER, "8", "account2", "account3", "50"};
+            commands[7] = new String[] {CMD_TRANSFER, "9", "account3", "account1", "90"};
+            commands[7] = new String[] {CMD_TRANSFER, "10", "account3", "account1", "110"};
+            commands[8] = new String[] {CMD_REPORT, "10", "3"};
+
+            // Act
+            String[] results = bank.execute(commands);
+
+            // Assert
+            assertArrayEquals(
+                    new String[] {"true", "true", "true", "2000", "2000","1900", "1700", "250", "1960","account1(150), account3(100), account2(50)"},
+                    results,
+                    "Should allow transfer of entire balance"
+            );
+        }
+
+        @Test
+        @DisplayName("Report on top 2 accounts")
+        void reportOnTop2Accounts() {
+            // Arrange
+            Bank bank = new Bank();
+            String[][] commands = new String[9][];
+            commands[0] = new String[] {CMD_CREATE, "1", "account1"};
+            commands[1] = new String[] {CMD_CREATE, "2", "account2"};
+            commands[2] = new String[] {CMD_CREATE, "3", "account3"};
+            commands[3] = new String[] {CMD_ADD, "4", "account1", "2000"};
+            commands[3] = new String[] {CMD_ADD, "5", "account1", "2000"};
+            commands[4] = new String[] {CMD_TRANSFER, "6", "account1", "account2", "100"};
+            commands[5] = new String[] {CMD_TRANSFER, "7", "account1", "account2", "200"};
+            commands[6] = new String[] {CMD_TRANSFER, "8", "account2", "account3", "50"};
+            commands[7] = new String[] {CMD_TRANSFER, "9", "account3", "account1", "90"};
+            commands[7] = new String[] {CMD_TRANSFER, "10", "account3", "account1", "110"};
+            commands[8] = new String[] {CMD_REPORT, "10", "2"};
+
+            // Act
+            String[] results = bank.execute(commands);
+
+            // Assert
+            assertArrayEquals(
+                    new String[] {"true", "true", "true", "2000", "2000","1900", "1700", "250", "1960","account1(150), account3(100)"},
+                    results,
+                    "Should allow transfer of entire balance"
+            );
+        }
+
+        @Test
+        @DisplayName("Report on requested more accounts than available")
+        void reportOnTopAccountsTooManyRequested() {
+            // Arrange
+            Bank bank = new Bank();
+            String[][] commands = new String[9][];
+            commands[0] = new String[] {CMD_CREATE, "1", "account1"};
+            commands[1] = new String[] {CMD_CREATE, "2", "account2"};
+            commands[2] = new String[] {CMD_CREATE, "3", "account3"};
+            commands[3] = new String[] {CMD_ADD, "4", "account1", "2000"};
+            commands[3] = new String[] {CMD_ADD, "5", "account1", "2000"};
+            commands[4] = new String[] {CMD_TRANSFER, "6", "account1", "account2", "100"};
+            commands[5] = new String[] {CMD_TRANSFER, "7", "account1", "account2", "200"};
+            commands[6] = new String[] {CMD_TRANSFER, "8", "account2", "account3", "50"};
+            commands[7] = new String[] {CMD_TRANSFER, "9", "account3", "account1", "90"};
+            commands[7] = new String[] {CMD_TRANSFER, "10", "account3", "account1", "110"};
+            commands[8] = new String[] {CMD_REPORT, "10", "4"};
+
+            // Act
+            String[] results = bank.execute(commands);
+
+            // Assert
+            assertArrayEquals(
+                    new String[] {"true", "true", "true", "2000", "2000","1900", "1700", "250", "1960","account1(150), account3(100), account2(50)"},
                     results,
                     "Should allow transfer of entire balance"
             );
